@@ -21,18 +21,19 @@
 # List application Arduino/chipKIT/Digispark/Energia/Maple/Microduino/Teensy/Wiring libraries here
 # default = 0 = none
 #
-APP_LIBS_LIST = 0
+APP_LIBS_LIST = ESP8266WebServer ESP8266mDNS ESP8266WIFI
 
 # List user's libraries here 
 # default = 0 = none
 #
-USER_LIBS_LIST = 0
+USER_LIBS_LIST = ArduinoJson
 
 # List core, application and user's libraries to be excluded
 # For example, WiFi may crash on Arduino 1.0.2, Esplora on Arduino 1.0.3, Firmata on Teensy 3.0,
 #   OneWire on MPIDE 0023, HardwareSerial may conflict with MarlinSerial
 #
 #EXCLUDE_LIBS = Firmata WiFi Esplora OneWire Robot_Control Robot_Control/utility Robot_Motor
+EXCLUDE_LIBS = fuzzing scripts third-party test
 
 
 # Parameters
@@ -59,7 +60,7 @@ USER_LIBS_LIST = 0
 # SERIAL_BAUDRATE for the serial console, 9600 by default
 # Uncomment and specify another speed
 #
-#SERIAL_BAUDRATE = 115200
+SERIAL_BAUDRATE = 115200
 
 
 # Miscellaneous
