@@ -32,6 +32,7 @@
 
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
+#include "FS.h"
 #include "UserConfiguration.h"
 #include "Led.h"
 
@@ -65,9 +66,13 @@ void setup() {
     
     Serial.begin(115200);
     Serial.println("");
-    Serial.setDebugOutput(true);
+//    Serial.setDebugOutput(true);
     
-    // prepare LedGPIO
+    if (!SPIFFS.begin()) {
+        Serial.println("Failed to mount file system");
+        return;
+    }
+
     setupLed();
     
     //WIFI INIT
@@ -77,22 +82,36 @@ void setup() {
 void restoreWIFIConnection() {
     
     WiFi.disconnect(true);
+    WiFi.softAPdisconnect(true);
     
     bool connected = false;
     
     UserConfiguration conf;
-    
     bool isLoadConfig = conf.loadConfig();
+
+    const char* ssid = 0;
+    
     if (isLoadConfig) {
         Serial.println("Config loaded successful");
-        connected = connectToWIFI(ssid, password);
+        Serial.println(conf.serverName());
+        Serial.println(conf.ssid());
+        Serial.println(conf.password());
+        
+        ssid = conf.ssid();
+    }
+    
+    if (ssid) {
+        connected = connectToWIFI(ssid, conf.password());
     }
     
     visibleLed(connected);
     
     if (!connected) {
-        const char* name = isLoadConfig ? conf.serverName() : 0;
-        setupAccessPoint(name ? : DefaultAccessPointSSID);
+        
+        bool isLoadConfig = conf.loadConfig();
+        const char* serverName = isLoadConfig ? conf.serverName() : 0;
+
+        setupAccessPoint(serverName ? : DefaultAccessPointSSID);
     }
     
     setupWebServer();
@@ -100,13 +119,14 @@ void restoreWIFIConnection() {
     if (connected) {
         setupMDNS(DNSSDTXTDeviceStateConfigured);
     } else {
-        //setupMDNS(DNSSDTXTDeviceStateSetup);
+        setupMDNS(DNSSDTXTDeviceStateSetup);
     }
 }
 
 bool setupAccessPoint(const char* ssid) {
     
-    Serial.println("Configuring access point...");
+    Serial.print("Configuring access point: ");
+    Serial.println(ssid);
     WiFi.mode(WIFI_AP_STA);
     WiFi.softAP(ssid);
     
@@ -178,6 +198,7 @@ void handleAccessPoints() {
 
 void handleConfigure() {
     
+    Serial.println("");
     Serial.println("handleConfigure");
     
     if (server.hasArg("ssid") && server.hasArg("name")) {
@@ -186,23 +207,27 @@ void handleConfigure() {
         String pass = server.arg("password");
         String name = server.arg("name");
         
-        
+        Serial.println(name);
+        Serial.println(ssid);
+        Serial.println(pass);
         
         bool connected = connectToWIFI(ssid.c_str(), pass.c_str());
         
         if (connected) {
-            //setupMDNS(DNSSDTXTDeviceStateConfigured);
-            storeDeviceConfiguration(name.c_str(), ssid.c_str(), pass.c_str());
+            storeDeviceConfiguration(name.c_str(), ssid.c_str(), "");//pass.c_str());
+            setupMDNS(DNSSDTXTDeviceStateConfigured);
         }
         
         String res = connected ? "1" : "0";
         server.send(200, "text/plain", "{\"success\": " + res + "}");
+        Serial.println("handleConfigure 200 sended" + res);
     } else {
-        server.send(500, "text/plain", "{\"error\": \"BAD params\"}");
+        server.send(500, "text/plain", "{\"error\": {\"code\": 5}}");
     }
 }
 
 void storeDeviceConfiguration(const char* name, const char* ssid, const char* password) {
+    Serial.println("Storing Device Configuration");
     
     UserConfiguration conf;
     conf.resetConfig();
@@ -211,11 +236,12 @@ void storeDeviceConfiguration(const char* name, const char* ssid, const char* pa
     conf.setPassword(password);
     
     conf.saveConfig();
+    Serial.println("Device configuration stored successfully");
 }
 
 bool connectToWIFI(const char* ssid, const char* password) {
     
-    Serial.printf("Connecting to %s\n", ssid);
+    Serial.printf("Connecting to %s\r\n", ssid);
     if (String(WiFi.SSID()) != String(ssid)) {
         WiFi.begin(ssid, password);
     }
@@ -232,16 +258,14 @@ bool connectToWIFI(const char* ssid, const char* password) {
         step++;
         result = (WiFi.status() == WL_CONNECTED);
     }
+    Serial.println("");
     
     if (result) {
-        //WiFi.mode(WIFI_OFF);
-        
-        Serial.println("");
         Serial.print("Connected! IP address: ");
         Serial.println(WiFi.localIP());
     } else {
         WiFi.disconnect();
-        Serial.println("Failed connect to AP!");
+        Serial.println("Failed connect to AP!\r\n");
     }
     
     return result;

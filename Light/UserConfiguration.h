@@ -24,7 +24,9 @@
 
 class UserConfiguration {
     
-private: JsonObject *jsonObj;
+private:
+    StaticJsonBuffer<200> jsonBuffer;
+    JsonObject *jsonObj;
     
 public:
     
@@ -37,6 +39,7 @@ public:
     
     void setSSID(const char* ssid);
     const char* ssid();
+    
     void setPassword(const char* password);
     const char* password();
     

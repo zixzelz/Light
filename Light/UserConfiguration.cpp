@@ -25,7 +25,7 @@
 // Constants
 
 #define ConfigFile "/config.json"
-#define ServerNameKey "serverName"
+#define ServerNameKey "name"
 #define SSIDKey "ssid"
 #define PasswordKey "password"
 
@@ -52,7 +52,6 @@ bool UserConfiguration::loadConfig() {
     // use configFile.readString instead.
     configFile.readBytes(buf.get(), size);
     
-    StaticJsonBuffer<200> jsonBuffer;
     JsonObject& json = jsonBuffer.parseObject(buf.get());
     
     if (!json.success()) {
@@ -65,9 +64,10 @@ bool UserConfiguration::loadConfig() {
 }
 
 void UserConfiguration::resetConfig() {
-    StaticJsonBuffer<200> jsonBuffer;
     JsonObject& json = jsonBuffer.createObject();
     jsonObj = &json;
+
+    json["KEY"] = "";
 }
 
 bool UserConfiguration::saveConfig() {
