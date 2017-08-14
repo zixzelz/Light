@@ -30,37 +30,23 @@
 #error Platform not defined
 #endif // end IDE
 
-#include <ESP8266WebServer.h>
-#include <ESP8266mDNS.h>
-#include "FS.h"
+#include "ConnectionManager.h"
+#include "WebServerManager.h"
 #include "UserConfiguration.h"
 #include "Led.h"
 
-const byte NumberOfConnectionAttempts = 25;
+#include <ESP8266mDNS.h>
+#include "FS.h"
 
 #define DefaultAccessPointSSID "ESP8266"
-const char* DefaultHostName = "esp8266fs";
-const byte DefaultWebServerPort = 80;
 
-const char* DNSSDTXTDeviceStateKey = "DvSt";
-const char* DNSSDTXTDeviceStateSetup = "0";
-const char* DNSSDTXTDeviceStateConfigured = "1";
 
 const char* ssid = "ABCDk";
 const char* password = "13128800'";
 
 // Functions
 void restoreWIFIConnection();
-bool setupAccessPoint(const char* ssid);
-void setupWebServer();
-void setupMDNS(const char* state);
-void handleAccessPoints();
-void handleConfigure();
 void storeDeviceConfiguration(const char* name, const char* ssid, const char* password);
-bool connectToWIFI(const char* ssid, const char* password);
-
-
-ESP8266WebServer server(DefaultWebServerPort);
 
 void setup() {
     
@@ -90,6 +76,7 @@ void restoreWIFIConnection() {
     bool isLoadConfig = conf.loadConfig();
 
     const char* ssid = 0;
+    String *serverName = NULL;
     
     if (isLoadConfig) {
         Serial.println("Config loaded successful");
@@ -98,6 +85,7 @@ void restoreWIFIConnection() {
         Serial.println(conf.password());
         
         ssid = conf.ssid();
+        serverName = String(conf.serverName());
     }
     
     if (ssid) {
@@ -107,172 +95,20 @@ void restoreWIFIConnection() {
     visibleLed(connected);
     
     if (!connected) {
-        
-        bool isLoadConfig = conf.loadConfig();
-        const char* serverName = isLoadConfig ? conf.serverName() : 0;
-
-        setupAccessPoint(serverName ? : DefaultAccessPointSSID);
+        setupAccessPoint(serverName.c_str() ? : DefaultAccessPointSSID);
     }
     
     setupWebServer();
     
     if (connected) {
-        setupMDNS(DNSSDTXTDeviceStateConfigured);
+        setupMDNS(serverName.c_str(), DNSSDTXTDeviceStateConfigured);
     } else {
-        setupMDNS(DNSSDTXTDeviceStateSetup);
+        setupMDNS(serverName.c_str(), DNSSDTXTDeviceStateSetup);
     }
-}
-
-bool setupAccessPoint(const char* ssid) {
-    
-    Serial.print("Configuring access point: ");
-    Serial.println(ssid);
-    WiFi.mode(WIFI_AP_STA);
-    WiFi.softAP(ssid);
-    
-    IPAddress myIP = WiFi.softAPIP();
-    Serial.print("AP IP address: ");
-    Serial.println(myIP);
-}
-
-void setupWebServer() {
-    
-    server.on("/accessPoints", HTTP_GET, handleAccessPoints);
-    server.on("/configure", HTTP_GET, handleConfigure);
-    
-    server.on("/pin", HTTP_GET, []() {
-        Serial.println("pin");
-        server.send(200, "text/plain", "pin");
-    });
-    
-    server.onNotFound([]() {
-        server.send(404, "text/plain", "FileNotFound");
-    });
-    
-    server.begin();
-    Serial.println("HTTP server started");
-}
-
-void setupMDNS(const char* state) {
-    
-    Serial.println("Starting mDNS");
-    
-    while (!MDNS.begin(DefaultHostName, WiFi.softAPIP())) {
-        Serial.println("Error setting up MDNS responder!");
-        delay(1000);
-    }
-    
-    Serial.println("mDNS responder started");
-    MDNS.addService("esp", "tcp", DefaultWebServerPort);
-    MDNS.addServiceTxt("esp", "tcp", "_d", DefaultHostName);
-    MDNS.addServiceTxt("esp", "tcp", DNSSDTXTDeviceStateKey, state);
-}
-
-void handleAccessPoints() {
-    
-    //TKIP (WPA) = 2
-    //WEP = 5
-    //CCMP (WPA) = 4
-    //NONE = 7
-    //AUTO = 8
-    Serial.println("handleAccessPoints");
-    
-    int n = WiFi.scanNetworks();
-    
-    String output = "[";
-    for (int i = 0; i < n; i++) {
-        
-        if (output != "[") output += ',';
-        output += "{\"ssid\":\"";
-        output += WiFi.SSID(i);
-        output += "\",\"rssi\":";
-        output += String(WiFi.RSSI(i));
-        output += ",\"lock\":";
-        output += (WiFi.encryptionType(i) == ENC_TYPE_NONE) ? "0" : "1";
-        output += "}";
-    }
-    
-    output += "]";
-    server.send(200, "text/json", output);
-}
-
-void handleConfigure() {
-    
-    Serial.println("");
-    Serial.println("handleConfigure");
-    
-    if (server.hasArg("ssid") && server.hasArg("name")) {
-        
-        String ssid = server.arg("ssid");
-        String pass = server.arg("password");
-        String name = server.arg("name");
-        
-        Serial.println(name);
-        Serial.println(ssid);
-        Serial.println(pass);
-        
-        bool connected = connectToWIFI(ssid.c_str(), pass.c_str());
-        
-        if (connected) {
-            storeDeviceConfiguration(name.c_str(), ssid.c_str(), "");//pass.c_str());
-            setupMDNS(DNSSDTXTDeviceStateConfigured);
-        }
-        
-        String res = connected ? "1" : "0";
-        server.send(200, "text/plain", "{\"success\": " + res + "}");
-        Serial.println("handleConfigure 200 sended" + res);
-    } else {
-        server.send(500, "text/plain", "{\"error\": {\"code\": 5}}");
-    }
-}
-
-void storeDeviceConfiguration(const char* name, const char* ssid, const char* password) {
-    Serial.println("Storing Device Configuration");
-    
-    UserConfiguration conf;
-    conf.resetConfig();
-    conf.setServerName(name);
-    conf.setSSID(ssid);
-    conf.setPassword(password);
-    
-    conf.saveConfig();
-    Serial.println("Device configuration stored successfully");
-}
-
-bool connectToWIFI(const char* ssid, const char* password) {
-    
-    Serial.printf("Connecting to %s\r\n", ssid);
-    if (String(WiFi.SSID()) != String(ssid)) {
-        WiFi.begin(ssid, password);
-    }
-    
-    int step = 0;
-    bool result = (WiFi.status() == WL_CONNECTED);
-    
-    while (!result && step < NumberOfConnectionAttempts) {
-        
-        blinkLed();
-        Serial.print(".");
-        
-        delay(400);
-        step++;
-        result = (WiFi.status() == WL_CONNECTED);
-    }
-    Serial.println("");
-    
-    if (result) {
-        Serial.print("Connected! IP address: ");
-        Serial.println(WiFi.localIP());
-    } else {
-        WiFi.disconnect();
-        Serial.println("Failed connect to AP!\r\n");
-    }
-    
-    return result;
 }
 
 void loop() {
     //MDNS.update();
-    server.handleClient();
+    handleClient();
 }
 
