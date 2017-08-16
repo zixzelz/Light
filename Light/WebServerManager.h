@@ -54,11 +54,19 @@
 #ifndef ServerManager_cpp
 #define ServerManager_cpp
 
-extern const char* DNSSDTXTDeviceStateSetup;
-extern const char* DNSSDTXTDeviceStateConfigured;
+//enum SeekMode123 {
+//    SeekSet = 0,
+//    SeekCur = 1,
+//    SeekEnd = 2
+//};
+
+extern const byte DNSSDTXTDeviceStateSetup;
+extern const byte DNSSDTXTDeviceStateConfigured;
 
 void setupWebServer();
 void handleClient();
-void setupMDNS(const char* name, const char* state);
+void setupMDNS(const char* name);
+
+extern byte lightState;
 
 #endif // ServerManager_cpp

@@ -76,7 +76,9 @@ void restoreWIFIConnection() {
     bool isLoadConfig = conf.loadConfig();
 
     const char* ssid = 0;
-    String *serverName = NULL;
+    
+    const char* _serverName = isLoadConfig ? conf.serverName() : 0;
+    String serverName = String(_serverName ?: DefaultAccessPointSSID);
     
     if (isLoadConfig) {
         Serial.println("Config loaded successful");
@@ -85,25 +87,25 @@ void restoreWIFIConnection() {
         Serial.println(conf.password());
         
         ssid = conf.ssid();
-        serverName = String(conf.serverName());
     }
     
     if (ssid) {
         connected = connectToWIFI(ssid, conf.password());
     }
+    lightState = connected ? DNSSDTXTDeviceStateConfigured : DNSSDTXTDeviceStateSetup;
     
     visibleLed(connected);
     
     if (!connected) {
-        setupAccessPoint(serverName.c_str() ? : DefaultAccessPointSSID);
+        setupAccessPoint(serverName.c_str());
     }
     
     setupWebServer();
     
     if (connected) {
-        setupMDNS(serverName.c_str(), DNSSDTXTDeviceStateConfigured);
+        setupMDNS(serverName.c_str());
     } else {
-        setupMDNS(serverName.c_str(), DNSSDTXTDeviceStateSetup);
+        setupMDNS(serverName.c_str());
     }
 }
 

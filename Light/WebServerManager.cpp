@@ -30,21 +30,24 @@
 #define DefaultHostName "esp8266fs"
 
 const char* DNSSDTXTDeviceStateKey = "DvSt";
-const char* DNSSDTXTDeviceStateSetup = "0";
-const char* DNSSDTXTDeviceStateConfigured = "1";
+const byte DNSSDTXTDeviceStateSetup = 0;
+const byte DNSSDTXTDeviceStateConfigured = 1;
 
+void handleState();
 void handleAccessPoints();
 void handleConfigure();
 
 void storeDeviceConfiguration(const char* name, const char* ssid, const char* password);
 
-
 const byte DefaultWebServerPort = 80;
 
+
 ESP8266WebServer server(DefaultWebServerPort);
+byte lightState = 0;
 
 void setupWebServer() {
     
+    server.on("/state", HTTP_GET, handleState);
     server.on("/accessPoints", HTTP_GET, handleAccessPoints);
     server.on("/configure", HTTP_GET, handleConfigure);
     
@@ -59,6 +62,15 @@ void setupWebServer() {
     
     server.begin();
     Serial.println("HTTP server started");
+}
+
+void handleState() {
+
+    Serial.println("handleState");
+    
+    String state = String(lightState);
+    
+    server.send(200, "text/json", "{\"state\": " + state + "}");
 }
 
 void handleAccessPoints() {
@@ -108,7 +120,9 @@ void handleConfigure() {
         
         if (connected) {
             storeDeviceConfiguration(name.c_str(), ssid.c_str(), "");//pass.c_str());
-            setupMDNS(name.c_str(), DNSSDTXTDeviceStateConfigured);
+//            setupMDNS(name.c_str(), DNSSDTXTDeviceStateConfigured);
+            
+            lightState = DNSSDTXTDeviceStateConfigured;
         }
         
         String res = connected ? "1" : "0";
@@ -126,8 +140,8 @@ void handleClient() {
     server.handleClient();
 }
 
-void setupMDNS(const char* name, const char* state) {
-    
+void setupMDNS(const char* name) {
+
     Serial.print("Starting mDNS with name: ");
     Serial.println(name);
 
@@ -142,7 +156,7 @@ void setupMDNS(const char* name, const char* state) {
     
     MDNS.addService("esp", "tcp", DefaultWebServerPort);
     MDNS.addServiceTxt("esp", "tcp", "_d", title);
-    MDNS.addServiceTxt("esp", "tcp", DNSSDTXTDeviceStateKey, state);
+//    MDNS.addServiceTxt("esp", "tcp", DNSSDTXTDeviceStateKey, state);
 }
 
 void storeDeviceConfiguration(const char* name, const char* ssid, const char* password) {
