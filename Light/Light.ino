@@ -59,7 +59,7 @@ void setup() {
         return;
     }
 
-    setupLed();
+    Led.setupLed();
     
     //WIFI INIT
     restoreWIFIConnection();
@@ -94,7 +94,7 @@ void restoreWIFIConnection() {
     }
     lightState = connected ? DNSSDTXTDeviceStateConfigured : DNSSDTXTDeviceStateSetup;
     
-    visibleLed(connected);
+    Led.visibleLed(connected);
     
     if (!connected) {
         setupAccessPoint(serverName.c_str());

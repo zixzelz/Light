@@ -24,18 +24,19 @@
 
 const byte LedGPIO = 2;
 
-void setupLed() {
-    
+void LedHelper::setupLed() {
     pinMode(LedGPIO, OUTPUT);
     digitalWrite(LedGPIO, HIGH);
 }
 
-void blinkLed() {
+void LedHelper::blinkLed() {
     digitalWrite(LedGPIO, LOW);
     delay(100);
     digitalWrite(LedGPIO, HIGH);
 }
 
-void visibleLed(bool value) {
+void LedHelper::visibleLed(bool value) {
     digitalWrite(LedGPIO, !value);
 }
+
+LedHelper Led;

@@ -51,7 +51,7 @@ bool connectToWIFI(const char* ssid, const char* password) {
     
     while (!result && step < NumberOfConnectionAttempts) {
         
-        blinkLed();
+        Led.blinkLed();
         Serial.print(".");
         
         delay(400);

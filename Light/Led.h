@@ -54,8 +54,14 @@
 #ifndef Led_cpp
 #define Led_cpp
 
-void setupLed();
-void blinkLed();
-void visibleLed(bool value);
+class LedHelper {
+
+public:
+    void setupLed();
+    void blinkLed();
+    void visibleLed(bool value);
+};
+
+extern LedHelper Led;
 
 #endif // Led_cpp
