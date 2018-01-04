@@ -50,10 +50,10 @@ bool connectToWIFI(const char* ssid, const char* password) {
     bool result = (WiFi.status() == WL_CONNECTED);
     
     while (!result && step < NumberOfConnectionAttempts) {
-        
-        Led.blinkLed();
+
+        DefaultLed.blinkLed();
         Serial.print(".");
-        
+
         delay(400);
         step++;
         result = (WiFi.status() == WL_CONNECTED);

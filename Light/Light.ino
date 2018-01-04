@@ -34,19 +34,26 @@
 #include "WebServerManager.h"
 #include "UserConfiguration.h"
 #include "Led.h"
+#include "DeviceService.h"
 
 #include <ESP8266mDNS.h>
 #include "FS.h"
+#include "Types.h"
 
 #define DefaultAccessPointSSID "ESP8266"
 
+#define EMPTY_PASSWORD NO
 
 const char* ssid = "ABCDk";
 const char* password = "13128800'";
 
+WebServerManager currentWebServerManager;
+
 // Functions
 void restoreWIFIConnection();
-void storeDeviceConfiguration(const char* name, const char* ssid, const char* password);
+
+// Public variables
+DNSSDTXTDeviceState deviceState;
 
 void setup() {
     
@@ -59,10 +66,24 @@ void setup() {
         return;
     }
 
-    Led.setupLed();
+    DefaultLed.setupLed();
     
     //WIFI INIT
     restoreWIFIConnection();
+
+    currentWebServerManager.connectHandler([](const char* ssid, const char* password) -> bool {
+
+        bool connected = connectToWIFI(ssid, password);
+
+        if (connected) {
+            deviceState = DNSSDTXTDeviceState::Configured;
+        }
+        return connected;
+    });
+
+    currentWebServerManager.currentStateHandler([]() -> DNSSDTXTDeviceState {
+        return deviceState;
+    });
 }
 
 void restoreWIFIConnection() {
@@ -90,27 +111,30 @@ void restoreWIFIConnection() {
     }
     
     if (ssid) {
+#if EMPTY_PASSWORD
+        connected = connectToWIFI(ssid, "");
+#else
         connected = connectToWIFI(ssid, conf.password());
+#endif
     }
-    lightState = connected ? DNSSDTXTDeviceStateConfigured : DNSSDTXTDeviceStateSetup;
-    
-    Led.visibleLed(connected);
+    deviceState = connected ? DNSSDTXTDeviceState::Configured : DNSSDTXTDeviceState::Setup;
+
+    DefaultLed.visibleLed(connected);
     
     if (!connected) {
         setupAccessPoint(serverName.c_str());
     }
     
-    setupWebServer();
+    currentWebServerManager.setupWebServer();
     
     if (connected) {
-        setupMDNS(serverName.c_str());
+        currentWebServerManager.setupMDNS(serverName.c_str());
     } else {
-        setupMDNS(serverName.c_str());
+        currentWebServerManager.setupMDNS(serverName.c_str());
     }
 }
 
 void loop() {
     //MDNS.update();
-    handleClient();
+    currentWebServerManager.handleClient();
 }
-

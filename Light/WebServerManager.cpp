@@ -22,7 +22,6 @@
 #include "ConnectionManager.h"
 #include "UserConfiguration.h"
 
-#include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
 
 // Code
@@ -30,50 +29,53 @@
 #define DefaultHostName "esp8266fs"
 
 const char* DNSSDTXTDeviceStateKey = "DvSt";
-const byte DNSSDTXTDeviceStateSetup = 0;
-const byte DNSSDTXTDeviceStateConfigured = 1;
 
-void handleState();
-void handleAccessPoints();
-void handleConfigure();
+//void storeDeviceConfiguration(const char* name, const char* ssid, const char* password);
 
-void storeDeviceConfiguration(const char* name, const char* ssid, const char* password);
+const char DefaultWebServerPort = 80;
 
-const byte DefaultWebServerPort = 80;
+WebServerManager::WebServerManager() {
+    _server = ESP8266WebServer(DefaultWebServerPort);
+}
 
+void WebServerManager::setupWebServer() {
 
-ESP8266WebServer server(DefaultWebServerPort);
-byte lightState = 0;
+    _server.on("/state", HTTP_GET, [this]() {
+        _handleState();
+    });
 
-void setupWebServer() {
-    
-    server.on("/state", HTTP_GET, handleState);
-    server.on("/accessPoints", HTTP_GET, handleAccessPoints);
-    server.on("/configure", HTTP_GET, handleConfigure);
-    
-    server.on("/pin", HTTP_GET, []() {
+    _server.on("/accessPoints", HTTP_GET, [this]() {
+        _handleAccessPoints();
+    });
+
+    _server.on("/configure", HTTP_GET, [this]() {
+        _handleConfigure();
+    });
+
+    _server.on("/pin", HTTP_GET, [&]() {
         Serial.println("pin");
-        server.send(200, "text/plain", "pin");
+        _server.send(200, "text/plain", "pin");
     });
     
-    server.onNotFound([]() {
-        server.send(404, "text/plain", "FileNotFound");
+    _server.onNotFound([&]() {
+        _server.send(404, "text/plain", "FileNotFound");
     });
     
-    server.begin();
+    _server.begin();
     Serial.println("HTTP server started");
 }
 
-void handleState() {
+void WebServerManager::_handleState() {
 
     Serial.println("handleState");
-    
-    String state = String(lightState);
-    
-    server.send(200, "text/json", "{\"state\": " + state + "}");
+
+    DNSSDTXTDeviceState state = _currentStateHandler();
+    String strState = String(state);
+
+    _server.send(200, "text/json", "{\"state\": " + strState + "}");
 }
 
-void handleAccessPoints() {
+void WebServerManager::_handleAccessPoints() {
     
     //TKIP (WPA) = 2
     //WEP = 5
@@ -98,49 +100,55 @@ void handleAccessPoints() {
     }
     
     output += "]";
-    server.send(200, "text/json", output);
+    _server.send(200, "text/json", output);
 }
 
-void handleConfigure() {
+void WebServerManager::_handleConfigure() {
     
     Serial.println("");
     Serial.println("handleConfigure");
     
-    if (server.hasArg("ssid") && server.hasArg("name")) {
+    if (_server.hasArg("ssid") && _server.hasArg("name")) {
         
-        String ssid = server.arg("ssid");
-        String pass = server.arg("password");
-        String name = server.arg("name");
+        String ssid = _server.arg("ssid");
+        String pass = _server.arg("password");
+        String name = _server.arg("name");
         
         Serial.println(name);
         Serial.println(ssid);
         Serial.println(pass);
         
-        bool connected = connectToWIFI(ssid.c_str(), pass.c_str());
+        bool connected = _connectHandler(ssid.c_str(), pass.c_str());
         
         if (connected) {
-            storeDeviceConfiguration(name.c_str(), ssid.c_str(), "");//pass.c_str());
+            storeDeviceConfiguration(name.c_str(), ssid.c_str(), pass.c_str());
 //            setupMDNS(name.c_str(), DNSSDTXTDeviceStateConfigured);
-            
-            lightState = DNSSDTXTDeviceStateConfigured;
         }
         
         String res = connected ? "1" : "0";
-        server.send(200, "text/plain", "{\"success\": " + res + "}");
+        _server.send(200, "text/plain", "{\"success\": " + res + "}");
         
         Serial.println("handleConfigure 200 sended: " + res);
     } else {
-        server.send(400, "text/plain", "{\"error\": {\"code\": 5}}");
+        _server.send(400, "text/plain", "{\"error\": {\"code\": 5}}");
         
-        Serial.println("handleConfigure 500 sended");
+        Serial.println("handleConfigure 400 sended");
     }
 }
 
-void handleClient() {
-    server.handleClient();
+void WebServerManager::handleClient() {
+    _server.handleClient();
 }
 
-void setupMDNS(const char* name) {
+void WebServerManager::connectHandler(TConnectHandlerFunction handler) {
+    _connectHandler = handler;
+}
+
+void WebServerManager::currentStateHandler(TCurrentStateHandlerFunction handler) {
+    _currentStateHandler = handler;
+}
+
+void WebServerManager::setupMDNS(const char* name) {
 
     Serial.print("Starting mDNS with name: ");
     Serial.println(name);
@@ -159,15 +167,15 @@ void setupMDNS(const char* name) {
 //    MDNS.addServiceTxt("esp", "tcp", DNSSDTXTDeviceStateKey, state);
 }
 
-void storeDeviceConfiguration(const char* name, const char* ssid, const char* password) {
+void WebServerManager::storeDeviceConfiguration(const char* name, const char* ssid, const char* password) {
     Serial.println("Storing Device Configuration");
-    
+
     UserConfiguration conf;
     conf.resetConfig();
     conf.setServerName(name);
     conf.setSSID(ssid);
     conf.setPassword(password);
-    
+
     conf.saveConfig();
     Serial.println("Device configuration stored successfully");
 }

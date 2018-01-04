@@ -1,23 +1,10 @@
-///
-/// @file		Led.h
-/// @brief		Library header
-/// @details	<#details#>
-/// @n
-/// @n @b		Project Light
-/// @n @a		Developed with [embedXcode](http://embedXcode.weebly.com)
-///
-/// @author		Ruslan Maslouski
-/// @author		Ruslan Maslouski
-///
-/// @date		8/11/17 00:32
-/// @version	<#version#>
-///
-/// @copyright	(c) Ruslan Maslouski, 2017
-/// @copyright	<#licence#>
-///
-/// @see		ReadMe.txt for references
-///
-
+//
+//  DeviceService.h
+//  Index
+//
+//  Created by Ruslan Maslouski on 1/3/18.
+//  Copyright © 2018 Ruslan Maslouski. All rights reserved.
+//
 
 // Core library for code-sense - IDE-based
 #if defined(WIRING) // Wiring specific
@@ -51,17 +38,22 @@
 #error Platform not defined
 #endif // end IDE
 
-#ifndef Led_cpp
-#define Led_cpp
+#ifndef DeviceService_cpp
+#define DeviceService_cpp
 
-class LedHelper {
+class DeviceService {
 
 public:
-    void setupLed();
-    void blinkLed();
-    void visibleLed(bool value);
+    DeviceService(int devicePin);
+
+    void setValue(int value);
+    void turnOn();
+    void turnOff();
+
+private:
+    int _devicePin;
 };
 
-extern LedHelper DefaultLed;
+//DeviceService LampDevice(3);
 
-#endif // Led_cpp
+#endif /* DeviceService_cpp */

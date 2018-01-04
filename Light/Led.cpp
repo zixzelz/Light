@@ -39,4 +39,4 @@ void LedHelper::visibleLed(bool value) {
     digitalWrite(LedGPIO, !value);
 }
 
-LedHelper Led;
+LedHelper DefaultLed;
