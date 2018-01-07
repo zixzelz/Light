@@ -1,5 +1,5 @@
 ///
-/// @file		Led.h
+/// @file		ZCDDimmerLed.h
 /// @brief		Library header
 /// @details	<#details#>
 /// @n
@@ -9,10 +9,10 @@
 /// @author		Ruslan Maslouski
 /// @author		Ruslan Maslouski
 ///
-/// @date		8/11/17 00:32
+/// @date		1/6/18 16:24
 /// @version	<#version#>
 ///
-/// @copyright	(c) Ruslan Maslouski, 2017
+/// @copyright	(c) Ruslan Maslouski, 2018
 /// @copyright	<#licence#>
 ///
 /// @see		ReadMe.txt for references
@@ -51,22 +51,33 @@
 #error Platform not defined
 #endif // end IDE
 
-#ifndef Led_cpp
-#define Led_cpp
+#ifndef ZCDDimmerLed____FILEEXTENSION___
+#define ZCDDimmerLed____FILEEXTENSION___
 
-class LedHelper {
+typedef uint8_t DimmerValue;
+
+// Dimmer Led with Zero Cross Detector
+class ZCDDimmerLed {
 
 public:
-    LedHelper(int ledGPIO);
+    ZCDDimmerLed(int ledGPIO, int zcdGPIO);
 
-    void blinkLed();
-    void visibleLed(bool value);
+    void visibleLed(DimmerValue value);
+    void process();
+
+    DimmerValue getValue();
+
 protected:
     void setupLed();
+    void runAnimationStep();
 private:
+    DimmerValue _currentValue;
+    DimmerValue _value;
     int _ledGPIO;
+    int _zcdGPIO;
+
+    unsigned long  _stepInterval;
+    unsigned long  _lastStepTime;
 };
 
-extern LedHelper DefaultLed;
-
-#endif // Led_cpp
+#endif // ZCDDimmerLed____FILEEXTENSION___

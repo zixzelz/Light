@@ -34,6 +34,7 @@
 #include "WebServerManager.h"
 #include "UserConfiguration.h"
 #include "Led.h"
+#include "ZCDDimmerLed.h"
 #include "DeviceService.h"
 
 #include <ESP8266mDNS.h>
@@ -54,6 +55,7 @@ void restoreWIFIConnection();
 
 // Public variables
 DNSSDTXTDeviceState deviceState;
+ZCDDimmerLed lampLed_0(D0, D1);
 
 void setup() {
     
@@ -66,8 +68,6 @@ void setup() {
         return;
     }
 
-    DefaultLed.setupLed();
-    
     //WIFI INIT
     restoreWIFIConnection();
 
@@ -81,8 +81,19 @@ void setup() {
         return connected;
     });
 
-    currentWebServerManager.currentStateHandler([]() -> DNSSDTXTDeviceState {
-        return deviceState;
+    currentWebServerManager.currentStateHandler([]() -> CurrentState {
+
+        CurrentState state;
+        state.deviceState = deviceState;
+        state.lampState[0] = lampLed_0.getValue();
+        state.lampState[1] = 0;
+        state.lampState[2] = 0;
+
+        return state;
+    });
+
+    currentWebServerManager.setLampStateHandler([](char index, char value) -> void {
+        lampLed_0.visibleLed(value);
     });
 }
 
@@ -137,4 +148,5 @@ void restoreWIFIConnection() {
 void loop() {
     //MDNS.update();
     currentWebServerManager.handleClient();
+    lampLed_0.process();
 }

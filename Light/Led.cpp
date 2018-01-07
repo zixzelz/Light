@@ -16,27 +16,27 @@
 // See 			Led.h and ReadMe.txt for references
 //
 
-
 // Library header
 #include "Led.h"
 
-// Code
-
-const byte LedGPIO = 2;
+LedHelper::LedHelper(int ledGPIO) {
+    _ledGPIO = ledGPIO;
+    setupLed();
+}
 
 void LedHelper::setupLed() {
-    pinMode(LedGPIO, OUTPUT);
-    digitalWrite(LedGPIO, HIGH);
+    pinMode(_ledGPIO, OUTPUT);
+    digitalWrite(_ledGPIO, HIGH);
 }
 
 void LedHelper::blinkLed() {
-    digitalWrite(LedGPIO, LOW);
+    digitalWrite(_ledGPIO, LOW);
     delay(100);
-    digitalWrite(LedGPIO, HIGH);
+    digitalWrite(_ledGPIO, HIGH);
 }
 
 void LedHelper::visibleLed(bool value) {
-    digitalWrite(LedGPIO, !value);
+    digitalWrite(_ledGPIO, !value);
 }
 
-LedHelper DefaultLed;
+LedHelper DefaultLed(2);

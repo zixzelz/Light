@@ -58,11 +58,10 @@
 #include <ESP8266WebServer.h>
 #include "Types.h"
 
-//enum SeekMode123 {
-//    SeekSet = 0,
-//    SeekCur = 1,
-//    SeekEnd = 2
-//};
+struct CurrentState {
+    DNSSDTXTDeviceState deviceState;
+    int lampState[3];
+};
 
 class WebServerManager {
 public:
@@ -75,19 +74,26 @@ public:
     typedef std::function<bool(const char* ssid, const char* password)> TConnectHandlerFunction;
     void connectHandler(TConnectHandlerFunction handler);
 
-    typedef std::function<DNSSDTXTDeviceState(void)> TCurrentStateHandlerFunction;
+    typedef std::function<CurrentState(void)> TCurrentStateHandlerFunction;
     void currentStateHandler(TCurrentStateHandlerFunction handler);
+
+    typedef std::function<void(char index, char value)> TSetLampStateHandlerFunction;
+    void setLampStateHandler(TSetLampStateHandlerFunction handler);
 
 protected:
     ESP8266WebServer _server;
 
     void _handleState();
     void _handleAccessPoints();
-    void _handleConfigure();
+    void _handleSetup();
+    void _handleConfig();
+    void _handleSetLampState();
+
     void storeDeviceConfiguration(const char* name, const char* ssid, const char* password);
 
     TConnectHandlerFunction _connectHandler;
     TCurrentStateHandlerFunction _currentStateHandler;
+    TSetLampStateHandlerFunction _setLampStateHandler;
 };
 
 #endif // ServerManager_cpp

@@ -48,15 +48,18 @@ void WebServerManager::setupWebServer() {
         _handleAccessPoints();
     });
 
-    _server.on("/configure", HTTP_GET, [this]() {
-        _handleConfigure();
+    _server.on("/setup", HTTP_GET, [this]() {
+        _handleSetup();
     });
 
-    _server.on("/pin", HTTP_GET, [&]() {
-        Serial.println("pin");
-        _server.send(200, "text/plain", "pin");
+    _server.on("/config", HTTP_GET, [&]() {
+        _handleConfig();
     });
-    
+
+    _server.on("/setLampState", HTTP_GET, [&]() {
+        _handleSetLampState();
+    });
+
     _server.onNotFound([&]() {
         _server.send(404, "text/plain", "FileNotFound");
     });
@@ -69,10 +72,10 @@ void WebServerManager::_handleState() {
 
     Serial.println("handleState");
 
-    DNSSDTXTDeviceState state = _currentStateHandler();
-    String strState = String(state);
+    CurrentState state = _currentStateHandler();
+    String strState = String(state.deviceState);
 
-    _server.send(200, "text/json", "{\"state\": " + strState + "}");
+    _server.send(200, "text/json", "{\"state\": " + strState + ",\"lampState\":[" + state.lampState[0] + "]}");
 }
 
 void WebServerManager::_handleAccessPoints() {
@@ -103,7 +106,7 @@ void WebServerManager::_handleAccessPoints() {
     _server.send(200, "text/json", output);
 }
 
-void WebServerManager::_handleConfigure() {
+void WebServerManager::_handleSetup() {
     
     Serial.println("");
     Serial.println("handleConfigure");
@@ -128,11 +131,36 @@ void WebServerManager::_handleConfigure() {
         String res = connected ? "1" : "0";
         _server.send(200, "text/plain", "{\"success\": " + res + "}");
         
-        Serial.println("handleConfigure 200 sended: " + res);
+        Serial.println("_handleSetup 200 sended: " + res);
     } else {
         _server.send(400, "text/plain", "{\"error\": {\"code\": 5}}");
         
-        Serial.println("handleConfigure 400 sended");
+        Serial.println("_handleSetup 400 sended");
+    }
+}
+
+void WebServerManager::_handleConfig() {
+    Serial.println("_handleConfig");
+
+    String output = "[{\"dimmable\":1}]";
+    _server.send(200, "text/json", output);
+}
+
+void WebServerManager::_handleSetLampState() {
+    Serial.println("_handleSetLampState");
+
+    if (_server.hasArg("id") && _server.hasArg("value")) {
+
+        int id = _server.arg("id").toInt();
+        int value = _server.arg("value").toInt();
+
+        _setLampStateHandler(id, value);
+
+        _server.send(200, "text/json", "");
+       Serial.println("_handleSetLampState 200");
+    } else {
+        _server.send(400, "text/plain", "{\"error\": {\"code\": 5}}");
+        Serial.println("_handleSetLampState 400 sended");
     }
 }
 
@@ -146,6 +174,10 @@ void WebServerManager::connectHandler(TConnectHandlerFunction handler) {
 
 void WebServerManager::currentStateHandler(TCurrentStateHandlerFunction handler) {
     _currentStateHandler = handler;
+}
+
+void WebServerManager::setLampStateHandler(TSetLampStateHandlerFunction handler) {
+    _setLampStateHandler = handler;
 }
 
 void WebServerManager::setupMDNS(const char* name) {
