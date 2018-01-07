@@ -41,6 +41,9 @@
 #include "FS.h"
 #include "Types.h"
 
+//#include "newCode.h"
+#include "CapacitiveSensor.h"
+
 #define DefaultAccessPointSSID "ESP8266"
 
 #define EMPTY_PASSWORD NO
@@ -55,9 +58,11 @@ void restoreWIFIConnection();
 
 // Public variables
 DNSSDTXTDeviceState deviceState;
-ZCDDimmerLed lampLed_0(D1, D4);
-ZCDDimmerLed lampLed_1(D1, D5);
-ZCDDimmerLed lampLed_2(D1, D6);
+ZCDDimmerLed lampLed_0(D1, D0);
+ZCDDimmerLed lampLed_1(D1, D1);
+ZCDDimmerLed lampLed_2(D1, D2);
+
+CapacitiveSensor cs_4_2 = CapacitiveSensor(D3, D4);
 
 void setup() {
     
@@ -170,10 +175,33 @@ void restoreWIFIConnection() {
     }
 }
 
+void test();
 void loop() {
     //MDNS.update();
     currentWebServerManager.handleClient();
     lampLed_0.process();
     lampLed_1.process();
     lampLed_2.process();
+
+    test();
+}
+
+void test() {
+    long start = millis();
+    long total1 =  cs_4_2.capacitiveSensor(43);
+    Serial.println(total1);
+    //long total2 =  cs_4_5.capacitiveSensor(45);
+//    long total3 =  cs_4_8.capacitiveSensor(43);
+
+    if (total1 > 100) {
+        Serial.print(millis() - start);        // check on performance in milliseconds
+        Serial.print("\t");                    // tab character for debug window spacing
+
+        Serial.println(total1);                  // print sensor output 1
+        //Serial.print("\t");
+        //    Serial.print(total2);                  // print sensor output 2
+        //    Serial.print("\t");
+        //Serial.print(total3);                // print sensor output 3
+        Serial.println();
+    }
 }
