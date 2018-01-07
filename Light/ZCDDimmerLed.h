@@ -60,7 +60,7 @@ typedef uint8_t DimmerValue;
 class ZCDDimmerLed {
 
 public:
-    ZCDDimmerLed(int ledGPIO, int zcdGPIO);
+    ZCDDimmerLed(int zcdGPIO, int ledGPIO);
 
     void visibleLed(DimmerValue value);
     void process();

@@ -22,7 +22,7 @@
 
 // Code
 
-ZCDDimmerLed::ZCDDimmerLed(int ledGPIO, int zcdGPIO) {
+ZCDDimmerLed::ZCDDimmerLed(int zcdGPIO, int ledGPIO) {
     _ledGPIO = ledGPIO;
     _zcdGPIO = zcdGPIO;
 

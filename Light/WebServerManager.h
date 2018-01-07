@@ -77,7 +77,7 @@ public:
     typedef std::function<CurrentState(void)> TCurrentStateHandlerFunction;
     void currentStateHandler(TCurrentStateHandlerFunction handler);
 
-    typedef std::function<void(char index, char value)> TSetLampStateHandlerFunction;
+    typedef std::function<bool(int index, int value)> TSetLampStateHandlerFunction;
     void setLampStateHandler(TSetLampStateHandlerFunction handler);
 
 protected:

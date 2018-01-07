@@ -55,7 +55,9 @@ void restoreWIFIConnection();
 
 // Public variables
 DNSSDTXTDeviceState deviceState;
-ZCDDimmerLed lampLed_0(D0, D1);
+ZCDDimmerLed lampLed_0(D1, D4);
+ZCDDimmerLed lampLed_1(D1, D5);
+ZCDDimmerLed lampLed_2(D1, D6);
 
 void setup() {
     
@@ -86,14 +88,37 @@ void setup() {
         CurrentState state;
         state.deviceState = deviceState;
         state.lampState[0] = lampLed_0.getValue();
-        state.lampState[1] = 0;
-        state.lampState[2] = 0;
+        state.lampState[1] = lampLed_1.getValue();
+        state.lampState[2] = lampLed_2.getValue();
 
         return state;
     });
 
-    currentWebServerManager.setLampStateHandler([](char index, char value) -> void {
-        lampLed_0.visibleLed(value);
+    currentWebServerManager.setLampStateHandler([](int index, int value) -> bool {
+        switch (index) {
+            case -1: {
+                lampLed_0.visibleLed(value);
+                lampLed_1.visibleLed(value);
+                lampLed_2.visibleLed(value);
+                break;
+            }
+            case 0: {
+                lampLed_0.visibleLed(value);
+                break;
+            }
+            case 1: {
+                lampLed_1.visibleLed(value);
+                break;
+            }
+            case 2: {
+                lampLed_2.visibleLed(value);
+                break;
+            }
+            default: {
+                return false;
+            }
+        }
+        return true;
     });
 }
 
@@ -149,4 +174,6 @@ void loop() {
     //MDNS.update();
     currentWebServerManager.handleClient();
     lampLed_0.process();
+    lampLed_1.process();
+    lampLed_2.process();
 }

@@ -75,7 +75,7 @@ void WebServerManager::_handleState() {
     CurrentState state = _currentStateHandler();
     String strState = String(state.deviceState);
 
-    _server.send(200, "text/json", "{\"state\": " + strState + ",\"lampState\":[" + state.lampState[0] + "]}");
+    _server.send(200, "text/json", "{\"state\": " + strState + ",\"lampState\":[" + state.lampState[0] + "," + state.lampState[1] + "," + state.lampState[2] + "]}");
 }
 
 void WebServerManager::_handleAccessPoints() {
@@ -133,8 +133,7 @@ void WebServerManager::_handleSetup() {
         
         Serial.println("_handleSetup 200 sended: " + res);
     } else {
-        _server.send(400, "text/plain", "{\"error\": {\"code\": 5}}");
-        
+        _server.send(400, "text/plain", "");
         Serial.println("_handleSetup 400 sended");
     }
 }
@@ -149,18 +148,31 @@ void WebServerManager::_handleConfig() {
 void WebServerManager::_handleSetLampState() {
     Serial.println("_handleSetLampState");
 
-    if (_server.hasArg("id") && _server.hasArg("value")) {
+    if (_server.hasArg("value")) {
 
-        int id = _server.arg("id").toInt();
+        int id = -1;
+        if (_server.hasArg("id")) {
+            id = _server.arg("id").toInt();
+        }
         int value = _server.arg("value").toInt();
 
-        _setLampStateHandler(id, value);
+        Serial.print("id: ");
+        Serial.print(id);
+        Serial.print(", value: ");
+        Serial.println(value);
 
-        _server.send(200, "text/json", "");
-       Serial.println("_handleSetLampState 200");
+        bool success = _setLampStateHandler(id, value);
+
+        if (success) {
+            _server.send(200, "text/json", "{\"success\":1}");
+            Serial.println("Response code 200");
+        } else {
+            _server.send(404, "text/plain", "");
+            Serial.println("Response code 404");
+        }
     } else {
-        _server.send(400, "text/plain", "{\"error\": {\"code\": 5}}");
-        Serial.println("_handleSetLampState 400 sended");
+        _server.send(400, "text/plain", "");
+        Serial.println("Response code 400");
     }
 }
 
