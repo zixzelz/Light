@@ -21,10 +21,10 @@
 
 LedHelper::LedHelper(int ledGPIO) {
     _ledGPIO = ledGPIO;
-    setupLed();
+    _setupLed();
 }
 
-void LedHelper::setupLed() {
+void LedHelper::_setupLed() {
     pinMode(_ledGPIO, OUTPUT);
     digitalWrite(_ledGPIO, HIGH);
 }

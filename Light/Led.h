@@ -62,7 +62,7 @@ public:
     void blinkLed();
     void visibleLed(bool value);
 protected:
-    void setupLed();
+    void _setupLed();
 private:
     int _ledGPIO;
 };
