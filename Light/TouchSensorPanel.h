@@ -56,7 +56,6 @@
 
 #include <functional>
 #include "CapacitiveSensor.h"
-#include "RunLoop.h"
 
 struct _TouchSensor {
     enum Local: char {Sensor_0 = 0, Sensor_1 = 1, Sensor_2 = 2};
@@ -67,15 +66,7 @@ class TouchSensorPanel {
 
     public:
     TouchSensorPanel(uint8_t sendGPIO, uint8_t touchGPIO_0, uint8_t touchGPIO_1, uint8_t touchGPIO_2);
-
-    static TouchSensorPanel scheduledTouchSensorPanel(uint8_t sendGPIO, uint8_t touchGPIO_0, uint8_t touchGPIO_1, uint8_t touchGPIO_2) {
-        TouchSensorPanel panel = TouchSensorPanel(sendGPIO, touchGPIO_0, touchGPIO_1, touchGPIO_2);
-
-//        MainRunLoop.addRepeatBlock([]() {
-            //panel.process();
-//        });
-        return panel;
-    }
+    TouchSensorPanel(uint8_t sendGPIO, uint8_t touchGPIO_0, uint8_t touchGPIO_1, uint8_t touchGPIO_2, bool screduled);
 
     typedef std::function<void(void)> TouchHandlerFunction;
     void setTouchDownEvent(TouchSensor touchId, TouchHandlerFunction handler);

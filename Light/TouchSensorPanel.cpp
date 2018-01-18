@@ -19,12 +19,23 @@
 
 // Library header
 #include "TouchSensorPanel.h"
+#include "RunLoop.h"
 
 // Code
 
 const int TouchSample = 17;
 const int TouchSensitivity = 200;
 const int LegacyTouchSensitivity = 205;
+
+TouchSensorPanel::TouchSensorPanel(uint8_t sendGPIO, uint8_t touchGPIO_0, uint8_t touchGPIO_1, uint8_t touchGPIO_2, bool screduled):
+TouchSensorPanel(sendGPIO, touchGPIO_0, touchGPIO_1, touchGPIO_2) {
+
+    if (screduled) {
+        MainRunLoop.addRepeatBlock([this]() {
+            process(); //.cpp:92 __throw_bad_function_call 🤔
+        });
+    }
+}
 
 TouchSensorPanel::TouchSensorPanel(uint8_t sendGPIO, uint8_t touchGPIO_0, uint8_t touchGPIO_1, uint8_t touchGPIO_2):
 _sensor0(sendGPIO, touchGPIO_0), _sensor1(sendGPIO, touchGPIO_1), _sensor2(sendGPIO, touchGPIO_2) {
@@ -49,9 +60,9 @@ void TouchSensorPanel::setTouchUpEvent(TouchSensor touchId, TouchHandlerFunction
 
 void TouchSensorPanel::process() {
     long start = millis();
-    long total0 =  _sensor0.capacitiveSensor(TouchSample);
-    long total1 =  _sensor1.capacitiveSensor(TouchSample);
-    long total2 =  _sensor2.capacitiveSensor(TouchSample);
+    long total0 = _sensor0.capacitiveSensor(TouchSample);
+    long total1 = _sensor1.capacitiveSensor(TouchSample);
+    long total2 = _sensor2.capacitiveSensor(TouchSample);
 
 //    bool newValue_0, newValue_1, newValue_2;
 //
