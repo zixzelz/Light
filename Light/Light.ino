@@ -53,7 +53,7 @@ const char* ssid = "ABCDk";
 const char* password = "13128800'";
 
 WebServerManager currentWebServerManager;
-TouchSensorPanel touchSensorPanel(5, 4, 12, 14);
+TouchSensorPanel touchSensorPanel(D1, D2, D5, D6);
 
 // Functions
 void setupSensorPanel();
@@ -182,24 +182,24 @@ void restoreWIFIConnection() {
 
 bool setLampState(int index, int value) {
     switch (index) {
-            case -1: {
-                lampLed_0.visibleLed(value);
-                lampLed_1.visibleLed(value);
-                lampLed_2.visibleLed(value);
-                break;
-            }
-            case 0: {
-                lampLed_0.visibleLed(value);
-                break;
-            }
-            case 1: {
-                lampLed_1.visibleLed(value);
-                break;
-            }
-            case 2: {
-                lampLed_2.visibleLed(value);
-                break;
-            }
+        case -1: {
+            lampLed_0.visibleLed(value);
+            lampLed_1.visibleLed(value);
+            lampLed_2.visibleLed(value);
+            break;
+        }
+        case 0: {
+            lampLed_0.visibleLed(value);
+            break;
+        }
+        case 1: {
+            lampLed_1.visibleLed(value);
+            break;
+        }
+        case 2: {
+            lampLed_2.visibleLed(value);
+            break;
+        }
         default: {
             return false;
         }
