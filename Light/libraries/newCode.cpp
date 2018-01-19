@@ -7,7 +7,7 @@
 //
 // Project 		Light
 //
-// Created by 	Ruslan Maslouski, 1/7/18 23:44
+// Created by 	Ruslan Maslouski, 1/8/18 23:25
 // 				Ruslan Maslouski
 //
 // Copyright 	(c) Ruslan Maslouski, 2018

@@ -62,9 +62,9 @@ void restoreWIFIConnection();
 
 // Public variables
 DNSSDTXTDeviceState deviceState;
-ZCDDimmerLed lampLed_0(D1, D0);
-ZCDDimmerLed lampLed_1(D1, D3);
-ZCDDimmerLed lampLed_2(D1, D4);
+ZCDDimmerLed lampLed_0(D0, D3);
+ZCDDimmerLed lampLed_1(D0, D4);
+ZCDDimmerLed lampLed_2(D0, D7);
 
 void setup() {
     
@@ -110,6 +110,8 @@ void setup() {
         lampLed_1.process();
         lampLed_2.process();
     });
+
+    setupSensorPanel();
 }
 
 void setupSensorPanel() {

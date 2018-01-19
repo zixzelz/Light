@@ -62,6 +62,7 @@ class ZCDDimmerLed {
 public:
     ZCDDimmerLed(int zcdGPIO, int ledGPIO);
 
+    // value from 0 to 255
     void visibleLed(DimmerValue value);
     void process();
 

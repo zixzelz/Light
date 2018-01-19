@@ -9,7 +9,7 @@
 /// @author		Ruslan Maslouski
 /// @author		Ruslan Maslouski
 ///
-/// @date		1/7/18 23:44
+/// @date		1/8/18 23:25
 /// @version	<#version#>
 ///
 /// @copyright	(c) Ruslan Maslouski, 2018
