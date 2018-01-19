@@ -84,6 +84,10 @@ class TouchSensorPanel {
     bool _sensorState_1;
     bool _sensorState_2;
 
+    int _sensorMax_0;
+    int _sensorMax_1;
+    int _sensorMax_2;
+
     CapacitiveSensor _sensor0;
     CapacitiveSensor _sensor1;
     CapacitiveSensor _sensor2;
@@ -92,6 +96,7 @@ class TouchSensorPanel {
     TouchHandlerFunction _touchUpHandler[3];
 
     void _sensorStateChanged(int id, bool newValue);
+    void _testMaxMin(int total0, int total1, int total2);
 };
 
 #endif // TouchSensorPanel____FILEEXTENSION___
