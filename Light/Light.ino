@@ -43,8 +43,6 @@
 #include "FS.h"
 #include "Types.h"
 
-//#include "newCode.h"
-
 #define DefaultAccessPointSSID "ESP8266"
 
 #define EMPTY_PASSWORD NO
@@ -62,9 +60,9 @@ void restoreWIFIConnection();
 
 // Public variables
 DNSSDTXTDeviceState deviceState;
-ZCDDimmerLed lampLed_0(D0, D3);
-ZCDDimmerLed lampLed_1(D0, D4);
-ZCDDimmerLed lampLed_2(D0, D7);
+ZCDDimmerLed lampLed_0(D7, D3);
+//ZCDDimmerLed lampLed_1(D0, D4);
+//ZCDDimmerLed lampLed_2(D0, D7);
 
 void setup() {
     
@@ -95,8 +93,8 @@ void setup() {
         CurrentState state;
         state.deviceState = deviceState;
         state.lampState[0] = lampLed_0.getValue();
-        state.lampState[1] = lampLed_1.getValue();
-        state.lampState[2] = lampLed_2.getValue();
+        //state.lampState[1] = lampLed_1.getValue();
+        //state.lampState[2] = lampLed_2.getValue();
 
         return state;
     });
@@ -107,8 +105,8 @@ void setup() {
 
     MainRunLoop.addRepeatBlock([]() {
         lampLed_0.process();
-        lampLed_1.process();
-        lampLed_2.process();
+        //lampLed_1.process();
+        //lampLed_2.process();
     });
 
     setupSensorPanel();
@@ -118,10 +116,10 @@ void setupSensorPanel() {
 
     touchSensorPanel.setTouchDownEvent(TouchSensor::Sensor_0, []() {
         int value = lampLed_0.getValue();
-        if (value > 0) {
-            setLampState(-1, 0);
+        if (value > DimmerLedOff) {
+            setLampState(-1, DimmerLedOff);
         } else {
-            setLampState(-1, 255);
+            setLampState(-1, DimmerLedOn);
         }
     });
 
@@ -186,8 +184,8 @@ bool setLampState(int index, int value) {
     switch (index) {
         case -1: {
             lampLed_0.visibleLed(value);
-            lampLed_1.visibleLed(value);
-            lampLed_2.visibleLed(value);
+            //lampLed_1.visibleLed(value);
+            //lampLed_2.visibleLed(value);
             break;
         }
         case 0: {
@@ -195,11 +193,11 @@ bool setLampState(int index, int value) {
             break;
         }
         case 1: {
-            lampLed_1.visibleLed(value);
+            //lampLed_1.visibleLed(value);
             break;
         }
         case 2: {
-            lampLed_2.visibleLed(value);
+            //lampLed_2.visibleLed(value);
             break;
         }
         default: {
@@ -210,8 +208,9 @@ bool setLampState(int index, int value) {
 }
 
 void loop() {
+//    Serial.println(_duration);
     //MDNS.update();
-    touchSensorPanel.process();
+    //touchSensorPanel.process();
     currentWebServerManager.handleClient();
     MainRunLoop.process();
 }

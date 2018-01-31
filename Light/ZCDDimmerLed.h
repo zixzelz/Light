@@ -54,7 +54,18 @@
 #ifndef ZCDDimmerLed____FILEEXTENSION___
 #define ZCDDimmerLed____FILEEXTENSION___
 
+#define DimmerLedOn 100
+#define DimmerLedOff 0
+
 typedef uint8_t DimmerValue;
+
+static unsigned long __time;
+static unsigned long __duration;
+
+void timerIsr();
+void _startTimer();
+void pwmWrite(uint8_t pin, int value);
+void _prr();
 
 // Dimmer Led with Zero Cross Detector
 class ZCDDimmerLed {
@@ -76,6 +87,8 @@ private:
     DimmerValue _value;
     int _ledGPIO;
     int _zcdGPIO;
+
+    unsigned long _time;
 
     unsigned long  _stepInterval;
     unsigned long  _lastStepTime;
