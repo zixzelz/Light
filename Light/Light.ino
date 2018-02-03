@@ -60,7 +60,7 @@ void restoreWIFIConnection();
 
 // Public variables
 DNSSDTXTDeviceState deviceState;
-ZCDDimmerLed lampLed_0(D7, D3);
+ZCDDimmerLed lampLed_0(D3);
 //ZCDDimmerLed lampLed_1(D0, D4);
 //ZCDDimmerLed lampLed_2(D0, D7);
 
@@ -109,6 +109,7 @@ void setup() {
         //lampLed_2.process();
     });
 
+    ZCDDimmerLed::setupZCD(D7);
     setupSensorPanel();
 }
 
@@ -210,7 +211,7 @@ bool setLampState(int index, int value) {
 void loop() {
 //    Serial.println(_duration);
     //MDNS.update();
-    //touchSensorPanel.process();
+    touchSensorPanel.process();
     currentWebServerManager.handleClient();
     MainRunLoop.process();
 }

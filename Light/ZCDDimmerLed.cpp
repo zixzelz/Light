@@ -86,15 +86,18 @@ void pwmWrite(uint8_t pin, int value) {
     }
 }
 
-ZCDDimmerLed::ZCDDimmerLed(int zcdGPIO, int ledGPIO) {
+ZCDDimmerLed::ZCDDimmerLed(int ledGPIO) {
 
     _ledGPIO = ledGPIO;
-    _zcdGPIO = zcdGPIO;
 
     _stepInterval = 2;
     setupLed();
 
     _zcd_step = 0;
+}
+
+void ZCDDimmerLed::setupZCD(int zcdGPIO) {
+    setupZeroInterrupt(zcdGPIO);
 }
 
 void ZCDDimmerLed::setupLed() {
@@ -106,8 +109,6 @@ void ZCDDimmerLed::visibleLed(DimmerValue value) {
     Serial.print(_ledGPIO);
     Serial.print(" ");
     Serial.println(value);
-
-    setupZeroInterrupt(_zcdGPIO);
 
     _value = value;
     process();

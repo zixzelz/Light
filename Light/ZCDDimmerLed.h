@@ -71,7 +71,9 @@ void _prr();
 class ZCDDimmerLed {
 
 public:
-    ZCDDimmerLed(int zcdGPIO, int ledGPIO);
+    ZCDDimmerLed(int ledGPIO);
+
+    static void setupZCD(int zcdGPIO);
 
     // value from 0 to 255
     void visibleLed(DimmerValue value);
@@ -86,7 +88,6 @@ private:
     DimmerValue _currentValue;
     DimmerValue _value;
     int _ledGPIO;
-    int _zcdGPIO;
 
     unsigned long _time;
 
