@@ -76,6 +76,7 @@ public:
     static void setupZCD(int zcdGPIO);
 
     // value from 0 to 255
+    void visibleLed(DimmerValue value, bool animated);
     void visibleLed(DimmerValue value);
     void process();
 
@@ -84,6 +85,7 @@ public:
 protected:
     void setupLed();
     void runAnimationStep();
+    void applyValue();
 private:
     DimmerValue _currentValue;
     DimmerValue _value;

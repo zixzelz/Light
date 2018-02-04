@@ -22,17 +22,17 @@
 // Code
 
 #define DimmerMaxValue DimmerLedOn
-
+#define NumberOfPins 17
 uint8_t _pin;
-unsigned int _zcd_newValue[16];
-unsigned int _zcd_currentValue[16];
-bool _inProgress[16];
+unsigned int _zcd_newValue[NumberOfPins];
+unsigned int _zcd_currentValue[NumberOfPins];
+bool _inProgress[NumberOfPins];
 unsigned int _zcd_step;
 bool _timerOn = false;
 
 void _timerIsr() {
 
-    for (int pin = 0; pin < 16; pin++) {
+    for (int pin = 0; pin < NumberOfPins; pin++) {
         if (_zcd_newValue[pin] != 0 || _zcd_currentValue[pin] != 0) {
             if (_zcd_step == _zcd_currentValue[pin]) {
                 digitalWrite(pin, LOW);
@@ -53,7 +53,7 @@ void _timerIsr() {
 void _handleZeroCross() {
 
     _zcd_step = 0;
-    for (int pin = 0; pin < 16; pin++) {
+    for (int pin = 0; pin < NumberOfPins; pin++) {
         _zcd_currentValue[pin] = _zcd_newValue[pin];
     }
 }
@@ -106,12 +106,21 @@ void ZCDDimmerLed::setupLed() {
 }
 
 void ZCDDimmerLed::visibleLed(DimmerValue value) {
+    visibleLed(value, true);
+}
+
+void ZCDDimmerLed::visibleLed(DimmerValue value, bool animated) {
     Serial.print(_ledGPIO);
     Serial.print(" ");
     Serial.println(value);
 
     _value = value;
-    process();
+    if (animated) {
+        process();
+    } else {
+        _currentValue += _value;
+        applyValue();
+    }
 }
 
 DimmerValue ZCDDimmerLed::getValue() {
@@ -133,7 +142,11 @@ void ZCDDimmerLed::runAnimationStep() {
         } else if (_currentValue < _value) {
             _currentValue += 1;
         }
-        pwmWrite(_ledGPIO, _currentValue);
+        applyValue();
         _lastStepTime = time;
     }
+}
+
+void ZCDDimmerLed::applyValue() {
+    pwmWrite(_ledGPIO, _currentValue);
 }
