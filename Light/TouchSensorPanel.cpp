@@ -24,9 +24,10 @@
 // Code
 
 const int TouchSample = 17;
-const int TouchSensitivity = 100;
-const int TouchSensitivityToDisable = 45;
+const int TouchSensitivity = 150;
+const int TouchSensitivityToDisable = 50;
 const int LegacyTouchSensitivity = 205;
+const int MinTouchMoveDelay = 100;
 
 TouchSensorPanel::TouchSensorPanel(uint8_t sendGPIO, uint8_t touchGPIO_0, uint8_t touchGPIO_1, uint8_t touchGPIO_2, bool screduled):
 TouchSensorPanel(sendGPIO, touchGPIO_0, touchGPIO_1, touchGPIO_2) {
@@ -61,6 +62,10 @@ void TouchSensorPanel::setTouchUpEvent(TouchSensor touchId, TouchHandlerFunction
     _touchUpHandler[touchId] = handler;
 }
 
+void TouchSensorPanel::setTouchMoveEvent(TouchSensor touchId, TouchHandlerFunction handler) {
+    _touchMoveHandler[touchId] = handler;
+}
+
 void TouchSensorPanel::process() {
     long start = millis();
     long total0 = _sensor0.capacitiveSensor(TouchSample);
@@ -71,30 +76,38 @@ void TouchSensorPanel::process() {
     bool newValue_1 = false;
     bool newValue_2 = false;
 
+//    Serial.print(total0);
+//    Serial.print(" ");
 
-
-    if (total0 > TouchSensitivity || (_sensorState_0 && total0 > TouchSensitivityToDisable)) {// && (total0 > total1 || total1 > LegacyTouchSensitivity) && total0 > total2 || total2 > LegacyTouchSensitivity) {
+    if (total0 > TouchSensitivity || (_sensorState_0 && total0 > TouchSensitivityToDisable)) {
         newValue_0 = true;
     }
-    if (total1 > TouchSensitivity || (_sensorState_1 && total1 > TouchSensitivityToDisable)) {// && (total1 > total0 || total0 > LegacyTouchSensitivity) && total1 > total2 || total2 > LegacyTouchSensitivity) {
+    if (total1 > TouchSensitivity || (_sensorState_1 && total1 > TouchSensitivityToDisable)) {
         newValue_1 = true;
     }
-    if (total2 > TouchSensitivity || (_sensorState_2 && total2 > TouchSensitivityToDisable)) {// && (total2 > total0 || total0 > LegacyTouchSensitivity) && total2 > total1 || total1 > LegacyTouchSensitivity) {
+    if (total2 > TouchSensitivity || (_sensorState_2 && total2 > TouchSensitivityToDisable)) {
         newValue_2 = true;
     }
 
     if (newValue_0 != _sensorState_0) {
-        Serial.print(total0);
+        Serial.print(" Sensor id: 0, =============== value: ");
+        Serial.println(total0);
+
         _sensorState_0 = newValue_0;
         _sensorStateChanged(TouchSensor::Sensor_0, newValue_0);
+    } else if (_sensorState_0) {
+//        Serial.print(" Sensor id: 0, move: ");
+//        Serial.println(total0);
+
+        _sensorStateMove(TouchSensor::Sensor_0);
     }
     if (newValue_1 != _sensorState_1) {
-        Serial.print(total1);
+        //Serial.println(total1);
         _sensorState_1 = newValue_1;
         _sensorStateChanged(TouchSensor::Sensor_1, newValue_1);
     }
     if (newValue_2 != _sensorState_2) {
-        Serial.print(total2);
+        //Serial.println(total2);
         _sensorState_2 = newValue_2;
         _sensorStateChanged(TouchSensor::Sensor_2, newValue_2);
     }
@@ -103,15 +116,34 @@ void TouchSensorPanel::process() {
 }
 
 void TouchSensorPanel::_sensorStateChanged(int id, bool newValue) {
-    Serial.print(" Sensor id: ");
-    Serial.print(id);
-    Serial.print(", value: ");
-    Serial.println(newValue);
+//    Serial.print(" Sensor id: ");
+//    Serial.print(id);
+//    Serial.print(", value: ");
+//    Serial.println(newValue);
     if (newValue) {
         TouchHandlerFunction handler = _touchDownHandler[id];
-        handler();
+        if (handler) {
+            handler();
+        }
     } else {
         TouchHandlerFunction handler = _touchUpHandler[id];
+        if (handler) {
+            handler();
+        }
+    }
+}
+
+void TouchSensorPanel::_sensorStateMove(int id) {
+//        Serial.print(" Sensor id: ");
+//        Serial.print(id);
+//        Serial.print(", value: ");
+//        Serial.println(newValue);
+
+    unsigned long mill = millis();
+    if (mill - _touchMoveDelay[id] > MinTouchMoveDelay) {
+        _touchMoveDelay[id] = mill;
+
+        TouchHandlerFunction handler = _touchMoveHandler[id];
         if (handler) {
             handler();
         }

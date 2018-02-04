@@ -47,6 +47,15 @@
 
 #define EMPTY_PASSWORD NO
 
+#define ZCD_GPIO D7
+#define SensorLed_0_GPIO D8
+#define SensorLed_1_GPIO D8
+#define SensorLed_2_GPIO D8
+
+#define SensorLed_Off DimmerLedOff
+#define SensorLed_Mid DimmerLedOn * 0.2
+#define SensorLed_On DimmerLedOn
+
 const char* ssid = "ABCDk";
 const char* password = "13128800'";
 
@@ -109,7 +118,7 @@ void setup() {
         //lampLed_2.process();
     });
 
-    ZCDDimmerLed::setupZCD(D7);
+    ZCDDimmerLed::setupZCD(ZCD_GPIO);
     setupSensorPanel();
 }
 
@@ -185,8 +194,8 @@ bool setLampState(int index, int value) {
     switch (index) {
         case -1: {
             lampLed_0.visibleLed(value);
-            //lampLed_1.visibleLed(value);
-            //lampLed_2.visibleLed(value);
+            lampLed_1.visibleLed(value);
+            lampLed_2.visibleLed(value);
             break;
         }
         case 0: {
@@ -194,11 +203,11 @@ bool setLampState(int index, int value) {
             break;
         }
         case 1: {
-            //lampLed_1.visibleLed(value);
+            lampLed_1.visibleLed(value);
             break;
         }
         case 2: {
-            //lampLed_2.visibleLed(value);
+            lampLed_2.visibleLed(value);
             break;
         }
         default: {

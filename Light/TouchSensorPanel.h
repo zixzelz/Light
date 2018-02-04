@@ -70,6 +70,7 @@ class TouchSensorPanel {
 
     typedef std::function<void(void)> TouchHandlerFunction;
     void setTouchDownEvent(TouchSensor touchId, TouchHandlerFunction handler);
+    void setTouchMoveEvent(TouchSensor touchId, TouchHandlerFunction handler);
     void setTouchUpEvent(TouchSensor touchId, TouchHandlerFunction handler);
 
     void process();
@@ -93,9 +94,12 @@ class TouchSensorPanel {
     CapacitiveSensor _sensor2;
 
     TouchHandlerFunction _touchDownHandler[3];
+    TouchHandlerFunction _touchMoveHandler[3];
     TouchHandlerFunction _touchUpHandler[3];
+    unsigned long _touchMoveDelay[3];
 
     void _sensorStateChanged(int id, bool newValue);
+    void _sensorStateMove(int id);
     void _testMaxMin(int total0, int total1, int total2);
 };
 
