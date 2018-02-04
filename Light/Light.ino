@@ -70,8 +70,12 @@ void restoreWIFIConnection();
 // Public variables
 DNSSDTXTDeviceState deviceState;
 ZCDDimmerLed lampLed_0(D3);
-//ZCDDimmerLed lampLed_1(D0, D4);
-//ZCDDimmerLed lampLed_2(D0, D7);
+ZCDDimmerLed lampLed_1(D4);
+ZCDDimmerLed lampLed_2(D0);
+
+ZCDDimmerLed sensorLed_0(SensorLed_0_GPIO);
+ZCDDimmerLed sensorLed_1(SensorLed_1_GPIO);
+ZCDDimmerLed sensorLed_2(SensorLed_2_GPIO);
 
 void setup() {
     
@@ -102,8 +106,8 @@ void setup() {
         CurrentState state;
         state.deviceState = deviceState;
         state.lampState[0] = lampLed_0.getValue();
-        //state.lampState[1] = lampLed_1.getValue();
-        //state.lampState[2] = lampLed_2.getValue();
+        state.lampState[1] = lampLed_1.getValue();
+        state.lampState[2] = lampLed_2.getValue();
 
         return state;
     });
@@ -114,8 +118,11 @@ void setup() {
 
     MainRunLoop.addRepeatBlock([]() {
         lampLed_0.process();
-        //lampLed_1.process();
-        //lampLed_2.process();
+        lampLed_1.process();
+        lampLed_2.process();
+        sensorLed_0.process();
+        sensorLed_1.process();
+        sensorLed_2.process();
     });
 
     ZCDDimmerLed::setupZCD(ZCD_GPIO);
@@ -125,6 +132,7 @@ void setup() {
 void setupSensorPanel() {
 
     touchSensorPanel.setTouchDownEvent(TouchSensor::Sensor_0, []() {
+        sensorLed_0.visibleLed(SensorLed_On, false);
         int value = lampLed_0.getValue();
         if (value > DimmerLedOff) {
             setLampState(-1, DimmerLedOff);
@@ -134,12 +142,32 @@ void setupSensorPanel() {
     });
 
     touchSensorPanel.setTouchDownEvent(TouchSensor::Sensor_1, []() {
-
+        sensorLed_1.visibleLed(SensorLed_On, false);
     });
 
     touchSensorPanel.setTouchDownEvent(TouchSensor::Sensor_2, []() {
-
+        sensorLed_2.visibleLed(SensorLed_On, false);
     });
+
+    touchSensorPanel.setTouchUpEvent(TouchSensor::Sensor_0, []() {
+        sensorLed_0.visibleLed(SensorLed_Mid, false);
+    });
+
+    touchSensorPanel.setTouchUpEvent(TouchSensor::Sensor_1, []() {
+        sensorLed_1.visibleLed(SensorLed_Mid, false);
+    });
+
+    touchSensorPanel.setTouchUpEvent(TouchSensor::Sensor_2, []() {
+        sensorLed_2.visibleLed(SensorLed_Mid, false);
+    });
+
+    touchSensorPanel.setTouchMoveEvent(TouchSensor::Sensor_0, []() {
+        //Serial.println("Move");
+    });
+
+    sensorLed_0.visibleLed(SensorLed_Mid);
+    sensorLed_1.visibleLed(SensorLed_Mid);
+    sensorLed_2.visibleLed(SensorLed_Mid);
 }
 
 void restoreWIFIConnection() {
