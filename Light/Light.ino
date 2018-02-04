@@ -77,6 +77,8 @@ ZCDDimmerLed sensorLed_0(SensorLed_0_GPIO);
 ZCDDimmerLed sensorLed_1(SensorLed_1_GPIO);
 ZCDDimmerLed sensorLed_2(SensorLed_2_GPIO);
 
+DimmerValue lampLedPreviousValue = DimmerLedOn;
+
 void setup() {
     
     Serial.begin(115200);
@@ -133,11 +135,13 @@ void setupSensorPanel() {
 
     touchSensorPanel.setTouchDownEvent(TouchSensor::Sensor_0, []() {
         sensorLed_0.visibleLed(SensorLed_On, false);
-        int value = lampLed_0.getValue();
+
+        DimmerValue value = lampLed_0.getValue();
         if (value > DimmerLedOff) {
+            lampLedPreviousValue = value;
             setLampState(-1, DimmerLedOff);
         } else {
-            setLampState(-1, DimmerLedOn);
+            setLampState(-1, lampLedPreviousValue);
         }
     });
 
